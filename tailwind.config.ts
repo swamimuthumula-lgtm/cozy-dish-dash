@@ -47,6 +47,24 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        veg: {
+          DEFAULT: "hsl(var(--veg))",
+          foreground: "hsl(var(--veg-foreground))",
+          light: "hsl(var(--veg-light))",
+        },
+        "non-veg": {
+          DEFAULT: "hsl(var(--non-veg))",
+          foreground: "hsl(var(--non-veg-foreground))",
+          light: "hsl(var(--non-veg-light))",
+        },
+        income: {
+          DEFAULT: "hsl(var(--income))",
+          foreground: "hsl(var(--income-foreground))",
+        },
+        expense: {
+          DEFAULT: "hsl(var(--expense))",
+          foreground: "hsl(var(--expense-foreground))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
