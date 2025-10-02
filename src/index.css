@@ -32,20 +32,20 @@ All colors MUST be HSL.
     --accent: 42 47% 92%;
     --accent-foreground: 20 14.3% 4.1%;
 
-    /* Veg colors - fresh sage green */
-    --veg: 112 50% 45%;
+    /* Veg colors - modern emerald teal */
+    --veg: 158 64% 52%;
     --veg-foreground: 0 0% 100%;
-    --veg-light: 112 30% 85%;
+    --veg-light: 158 50% 90%;
 
-    /* Non-veg colors - rich crimson */
-    --non-veg: 0 65% 55%;
+    /* Non-veg colors - modern coral */
+    --non-veg: 14 90% 53%;
     --non-veg-foreground: 0 0% 100%;
-    --non-veg-light: 0 40% 90%;
+    --non-veg-light: 14 70% 92%;
 
     /* Income/expense colors */
-    --income: 142 76% 36%;
+    --income: 173 80% 40%;
     --income-foreground: 0 0% 100%;
-    --expense: 0 65% 55%;
+    --expense: 14 90% 53%;
     --expense-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
@@ -59,8 +59,8 @@ All colors MUST be HSL.
     --shadow-warm: 0 10px 30px -10px hsl(22 78% 55% / 0.2);
     --shadow-soft: 0 4px 20px -8px hsl(20 14.3% 4.1% / 0.1);
     --gradient-warm: linear-gradient(135deg, hsl(var(--primary)), hsl(28 76% 58%));
-    --gradient-veg: linear-gradient(135deg, hsl(var(--veg)), hsl(120 50% 50%));
-    --gradient-non-veg: linear-gradient(135deg, hsl(var(--non-veg)), hsl(10 70% 60%));
+    --gradient-veg: linear-gradient(135deg, hsl(var(--veg)), hsl(168 76% 58%));
+    --gradient-non-veg: linear-gradient(135deg, hsl(var(--non-veg)), hsl(24 95% 58%));
 
     --radius: 0.5rem;
 
