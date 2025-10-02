@@ -17,17 +17,17 @@ const monthlyData = [
 
 const DashboardCharts = () => {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
       {/* Veg vs Non-Veg Sales */}
       <Card className="hover-lift">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <span className="text-lg">🥘</span>
+          <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+            <span className="text-base md:text-lg">🥘</span>
             Veg vs Non-Veg Sales
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
+        <CardContent className="p-3 md:p-6">
+          <ResponsiveContainer width="100%" height={250}>
             <PieChart>
               <Pie
                 data={vegNonVegData}
@@ -62,13 +62,13 @@ const DashboardCharts = () => {
       {/* Monthly Income vs Expenses */}
       <Card className="hover-lift">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <span className="text-lg">📈</span>
+          <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+            <span className="text-base md:text-lg">📈</span>
             Monthly Overview
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
+        <CardContent className="p-3 md:p-6">
+          <ResponsiveContainer width="100%" height={250}>
             <BarChart data={monthlyData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />

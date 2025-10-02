@@ -147,19 +147,19 @@ const Transactions = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-2">
             💸 Transactions
           </h1>
-          <p className="text-muted-foreground mt-1">Track your income and expenses</p>
+          <p className="text-sm text-muted-foreground mt-1">Track your income and expenses</p>
         </div>
         
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-gradient-warm hover:scale-105 transition-smooth">
+            <Button className="bg-gradient-warm hover:scale-105 transition-smooth w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               Add Transaction
             </Button>
@@ -257,48 +257,48 @@ const Transactions = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         <Card className="hover-lift">
-          <CardContent className="p-6">
+          <CardContent className="p-4 md:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Income</p>
-                <p className="text-3xl font-bold text-income">₹{stats.income.toLocaleString()}</p>
+                <p className="text-xs md:text-sm font-medium text-muted-foreground">Total Income</p>
+                <p className="text-2xl md:text-3xl font-bold text-income">₹{stats.income.toLocaleString()}</p>
               </div>
-              <div className="bg-gradient-to-br from-income to-green-600 w-12 h-12 rounded-full flex items-center justify-center">
-                <TrendingUp className="h-6 w-6 text-white" />
+              <div className="bg-gradient-to-br from-income to-green-600 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center flex-shrink-0">
+                <TrendingUp className="h-5 w-5 md:h-6 md:w-6 text-white" />
               </div>
             </div>
           </CardContent>
         </Card>
         
         <Card className="hover-lift">
-          <CardContent className="p-6">
+          <CardContent className="p-4 md:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Expenses</p>
-                <p className="text-3xl font-bold text-expense">₹{stats.expenses.toLocaleString()}</p>
+                <p className="text-xs md:text-sm font-medium text-muted-foreground">Total Expenses</p>
+                <p className="text-2xl md:text-3xl font-bold text-expense">₹{stats.expenses.toLocaleString()}</p>
               </div>
-              <div className="bg-gradient-to-br from-expense to-red-600 w-12 h-12 rounded-full flex items-center justify-center">
-                <TrendingDown className="h-6 w-6 text-white" />
+              <div className="bg-gradient-to-br from-expense to-red-600 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center flex-shrink-0">
+                <TrendingDown className="h-5 w-5 md:h-6 md:w-6 text-white" />
               </div>
             </div>
           </CardContent>
         </Card>
         
-        <Card className="hover-lift">
-          <CardContent className="p-6">
+        <Card className="hover-lift sm:col-span-2 lg:col-span-1">
+          <CardContent className="p-4 md:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Net Profit</p>
-                <p className={`text-3xl font-bold ${stats.profit >= 0 ? 'text-income' : 'text-expense'}`}>
+                <p className="text-xs md:text-sm font-medium text-muted-foreground">Net Profit</p>
+                <p className={`text-2xl md:text-3xl font-bold ${stats.profit >= 0 ? 'text-income' : 'text-expense'}`}>
                   ₹{stats.profit.toLocaleString()}
                 </p>
               </div>
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+              <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center flex-shrink-0 ${
                 stats.profit >= 0 ? 'bg-gradient-to-br from-income to-green-600' : 'bg-gradient-to-br from-expense to-red-600'
               }`}>
-                <span className="text-white text-xl">
+                <span className="text-white text-lg md:text-xl">
                   {stats.profit >= 0 ? '📈' : '📉'}
                 </span>
               </div>
@@ -310,7 +310,7 @@ const Transactions = () => {
       {/* Filters */}
       <Card>
         <CardContent className="p-4">
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button
               variant={filter === 'all' ? 'default' : 'outline'}
               onClick={() => setFilter('all')}
@@ -339,35 +339,35 @@ const Transactions = () => {
       {/* Transactions List */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
+          <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+            <Calendar className="h-4 w-4 md:h-5 md:w-5" />
             Transaction History
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className="space-y-3 md:space-y-4">
             {filteredTransactions.map((transaction) => (
-              <div key={transaction.id} className="flex items-center justify-between p-4 bg-secondary rounded-lg hover-lift">
-                <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+              <div key={transaction.id} className="flex items-center justify-between p-3 md:p-4 bg-secondary rounded-lg hover-lift">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center flex-shrink-0 ${
                     transaction.type === 'income' ? 'bg-income text-income-foreground' : 'bg-expense text-expense-foreground'
                   }`}>
-                    {transaction.type === 'income' ? '💰' : '💸'}
+                    <span className="text-base md:text-lg">{transaction.type === 'income' ? '💰' : '💸'}</span>
                   </div>
-                  <div>
-                    <p className="font-medium">{transaction.description}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-sm md:text-base truncate">{transaction.description}</p>
                     {transaction.dishes && (
-                      <div className="flex items-center gap-2 mt-1">
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
                         <Badge variant={transaction.dishes.type === 'veg' ? 'secondary' : 'destructive'} className="text-xs">
                           {transaction.dishes.type === 'veg' ? '🌿 Veg' : '🍗 Non-Veg'}
                         </Badge>
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-xs md:text-sm text-muted-foreground truncate">
                           {transaction.dishes.name}
                           {transaction.quantity && transaction.quantity > 1 && ` x${transaction.quantity}`}
                         </span>
                       </div>
                     )}
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs md:text-sm text-muted-foreground">
                       {new Date(transaction.transaction_date).toLocaleDateString('en-IN', {
                         year: 'numeric',
                         month: 'short',
@@ -378,8 +378,8 @@ const Transactions = () => {
                     </p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className={`text-xl font-bold ${
+                <div className="text-right flex-shrink-0 ml-2">
+                  <p className={`text-base md:text-xl font-bold ${
                     transaction.type === 'income' ? 'text-income' : 'text-expense'
                   }`}>
                     {transaction.type === 'income' ? '+' : '-'}₹{Number(transaction.amount).toLocaleString()}

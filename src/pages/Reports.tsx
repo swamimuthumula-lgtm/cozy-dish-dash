@@ -231,25 +231,25 @@ const Reports = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-2">
           📊 Reports & Analytics
         </h1>
-        <p className="text-muted-foreground mt-1">Insights into your restaurant performance</p>
+        <p className="text-sm text-muted-foreground mt-1">Insights into your restaurant performance</p>
       </div>
 
       {/* Monthly Trends */}
       <Card className="hover-lift">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <span className="text-lg">📈</span>
+          <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+            <span className="text-base md:text-lg">📈</span>
             Monthly Income vs Expenses
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
+        <CardContent className="p-3 md:p-6">
+          <ResponsiveContainer width="100%" height={250}>
             <BarChart data={reportData.monthlyTrends}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
@@ -264,16 +264,16 @@ const Reports = () => {
       </Card>
 
       {/* Veg vs Non-Veg Sales & Daily Revenue */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         <Card className="hover-lift">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <span className="text-lg">🥘</span>
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <span className="text-base md:text-lg">🥘</span>
               Veg vs Non-Veg Revenue
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
+          <CardContent className="p-3 md:p-6">
+            <ResponsiveContainer width="100%" height={220}>
               <PieChart>
                 <Pie
                   data={reportData.vegNonVegSales}
@@ -307,13 +307,13 @@ const Reports = () => {
 
         <Card className="hover-lift">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <span className="text-lg">📅</span>
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <span className="text-base md:text-lg">📅</span>
               Daily Revenue (Last 7 Days)
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
+          <CardContent className="p-3 md:p-6">
+            <ResponsiveContainer width="100%" height={220}>
               <LineChart data={reportData.dailyRevenue}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" />
@@ -333,16 +333,16 @@ const Reports = () => {
       </div>
 
       {/* Top Dishes & Category Breakdown */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         <Card className="hover-lift">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <span className="text-lg">🏆</span>
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <span className="text-base md:text-lg">🏆</span>
               Top Selling Dishes
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
               {reportData.topDishes.map((dish, index) => (
                 <div key={dish.name} className="flex items-center justify-between p-3 bg-secondary rounded-lg">
                   <div className="flex items-center gap-3">
@@ -378,13 +378,13 @@ const Reports = () => {
 
         <Card className="hover-lift">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <span className="text-lg">📋</span>
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <span className="text-base md:text-lg">📋</span>
               Category Breakdown
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
               {reportData.categoryBreakdown.map((category) => (
                 <div key={category.name} className="p-4 bg-secondary rounded-lg">
                   <div className="flex items-center justify-between mb-2">

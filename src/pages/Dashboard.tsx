@@ -88,19 +88,19 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-foreground mb-2">
+      <div className="text-center mb-4 md:mb-8">
+        <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
           Welcome to Dish Dash! 🍴
         </h1>
-        <p className="text-lg text-muted-foreground">
+        <p className="text-base md:text-lg text-muted-foreground">
           Your cozy restaurant management dashboard
         </p>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         <KPICard
           title="Total Income"
           value={`₹${stats.totalIncome.toLocaleString()}`}
@@ -131,15 +131,15 @@ const Dashboard = () => {
       </div>
 
       {/* Veg vs Non-Veg Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
         <Card className="hover-lift">
-          <CardContent className="p-6">
+          <CardContent className="p-4 md:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Veg Dishes</p>
-                <p className="text-3xl font-bold text-veg">{stats.vegSales}</p>
+                <p className="text-xs md:text-sm font-medium text-muted-foreground">Veg Dishes</p>
+                <p className="text-2xl md:text-3xl font-bold text-veg">{stats.vegSales}</p>
               </div>
-              <div className="bg-gradient-veg w-16 h-16 rounded-xl flex items-center justify-center text-2xl">
+              <div className="bg-gradient-veg w-12 h-12 md:w-16 md:h-16 rounded-xl flex items-center justify-center text-xl md:text-2xl">
                 🌿
               </div>
             </div>
@@ -147,13 +147,13 @@ const Dashboard = () => {
         </Card>
         
         <Card className="hover-lift">
-          <CardContent className="p-6">
+          <CardContent className="p-4 md:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Non-Veg Dishes</p>
-                <p className="text-3xl font-bold text-non-veg">{stats.nonVegSales}</p>
+                <p className="text-xs md:text-sm font-medium text-muted-foreground">Non-Veg Dishes</p>
+                <p className="text-2xl md:text-3xl font-bold text-non-veg">{stats.nonVegSales}</p>
               </div>
-              <div className="bg-gradient-non-veg w-16 h-16 rounded-xl flex items-center justify-center text-2xl">
+              <div className="bg-gradient-non-veg w-12 h-12 md:w-16 md:h-16 rounded-xl flex items-center justify-center text-xl md:text-2xl">
                 🍗
               </div>
             </div>
@@ -167,23 +167,23 @@ const Dashboard = () => {
       {/* Recent Transactions */}
       <Card className="hover-lift">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <span className="text-lg">⏰</span>
+          <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+            <span className="text-base md:text-lg">⏰</span>
             Recent Transactions
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className="space-y-3 md:space-y-4">
             {recentTransactions.map((transaction) => (
-              <div key={transaction.id} className="flex items-center justify-between p-4 bg-secondary rounded-lg">
-                <div className="flex items-center gap-4">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+              <div key={transaction.id} className="flex items-center justify-between p-3 md:p-4 bg-secondary rounded-lg">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
                     transaction.type === 'income' ? 'bg-income text-income-foreground' : 'bg-expense text-expense-foreground'
                   }`}>
-                    {transaction.type === 'income' ? '💰' : '💸'}
+                    <span className="text-sm md:text-base">{transaction.type === 'income' ? '💰' : '💸'}</span>
                   </div>
-                  <div>
-                    <p className="font-medium">{transaction.description}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-sm md:text-base truncate">{transaction.description}</p>
                     {transaction.dishes && (
                       <div className="flex items-center gap-2 mt-1">
                         <Badge variant={transaction.dishes.type === 'veg' ? 'secondary' : 'destructive'} className="text-xs">
@@ -194,13 +194,13 @@ const Dashboard = () => {
                     )}
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className={`font-bold ${
+                <div className="text-right flex-shrink-0 ml-2">
+                  <p className={`font-bold text-sm md:text-base ${
                     transaction.type === 'income' ? 'text-income' : 'text-expense'
                   }`}>
                     {transaction.type === 'income' ? '+' : '-'}₹{Number(transaction.amount).toLocaleString()}
                   </p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs md:text-sm text-muted-foreground">
                     {new Date(transaction.transaction_date).toLocaleDateString()}
                   </p>
                 </div>
