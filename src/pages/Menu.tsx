@@ -197,19 +197,20 @@ const Menu = () => {
   }
 
   return (
-    <div className="space-y-4 md:space-y-6">
+    <div className="space-y-6 md:space-y-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-2">
-            🍽️ Menu Management
+          <h1 className="text-3xl md:text-4xl font-bold text-foreground flex items-center gap-3">
+            <span className="text-4xl">🍽️</span>
+            Menu Management
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">Manage your delicious dishes</p>
+          <p className="text-sm md:text-base text-muted-foreground mt-2 font-medium">Manage your delicious dishes</p>
         </div>
         
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-gradient-warm hover:scale-105 transition-smooth w-full sm:w-auto">
+            <Button variant="gradient" className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               Add Dish
             </Button>
@@ -311,22 +312,22 @@ const Menu = () => {
       </div>
 
       {/* Filters */}
-      <Card>
-        <CardContent className="p-4">
+      <Card className="border-0">
+        <CardContent className="p-5 md:p-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
-                <Search className="h-4 w-4 absolute left-3 top-3 text-muted-foreground" />
+                <Search className="h-5 w-5 absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   placeholder="Search dishes..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="pl-12 h-12 rounded-xl border-2"
                 />
               </div>
             </div>
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-full md:w-48">
+              <SelectTrigger className="w-full md:w-56 h-12 rounded-xl border-2">
                 <SelectValue placeholder="All Categories" />
               </SelectTrigger>
               <SelectContent>
@@ -343,53 +344,61 @@ const Menu = () => {
       </Card>
 
       {/* Dishes Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
         {filteredDishes.map((dish) => (
-          <Card key={dish.id} className="hover-lift">
-            <CardHeader className="pb-4">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <CardTitle className="text-lg">{dish.name}</CardTitle>
-                  <div className="flex items-center gap-2 mt-2">
-                    <Badge variant={dish.type === 'veg' ? 'secondary' : 'destructive'}>
+          <Card key={dish.id} className="hover-lift border-0 overflow-hidden">
+            <CardHeader className="pb-4 bg-gradient-to-br from-accent/50 to-transparent">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <CardTitle className="text-xl font-bold mb-3 truncate">{dish.name}</CardTitle>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge 
+                      variant={dish.type === 'veg' ? 'secondary' : 'destructive'}
+                      className="font-semibold"
+                    >
                       {dish.type === 'veg' ? '🌿 Veg' : '🍗 Non-Veg'}
                     </Badge>
                     {dish.categories && (
-                      <Badge variant="outline">
+                      <Badge variant="outline" className="font-medium">
                         {dish.categories.icon} {dish.categories.name}
                       </Badge>
                     )}
                   </div>
                 </div>
-                <div className="flex gap-1">
+                <div className="flex gap-2 flex-shrink-0">
                   <Button
-                    size="sm"
+                    size="icon"
                     variant="outline"
+                    className="h-9 w-9 rounded-xl"
                     onClick={() => handleEdit(dish)}
                   >
-                    <Edit className="h-3 w-3" />
+                    <Edit className="h-4 w-4" />
                   </Button>
                   <Button
-                    size="sm"
+                    size="icon"
                     variant="outline"
+                    className="h-9 w-9 rounded-xl"
                     onClick={() => handleDelete(dish.id)}
                   >
-                    <Trash2 className="h-3 w-3" />
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-4">
               {dish.description && (
-                <p className="text-muted-foreground text-sm mb-3">
+                <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
                   {dish.description}
                 </p>
               )}
-              <div className="flex items-center justify-between">
-                <div className="text-2xl font-bold text-primary">
+              <div className="flex items-center justify-between pt-2 border-t">
+                <div className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
                   ₹{dish.price.toLocaleString()}
                 </div>
-                <Badge variant={dish.is_available ? "default" : "secondary"}>
+                <Badge 
+                  variant={dish.is_available ? "default" : "secondary"}
+                  className="font-semibold"
+                >
                   {dish.is_available ? "Available" : "Unavailable"}
                 </Badge>
               </div>

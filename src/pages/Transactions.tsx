@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Plus, TrendingUp, TrendingDown, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 interface Transaction {
   id: string;
@@ -147,19 +148,20 @@ const Transactions = () => {
   }
 
   return (
-    <div className="space-y-4 md:space-y-6">
+    <div className="space-y-6 md:space-y-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-2">
-            💸 Transactions
+          <h1 className="text-3xl md:text-4xl font-bold text-foreground flex items-center gap-3">
+            <span className="text-4xl">💸</span>
+            Transactions
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">Track your income and expenses</p>
+          <p className="text-sm md:text-base text-muted-foreground mt-2 font-medium">Track your income and expenses</p>
         </div>
         
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-gradient-warm hover:scale-105 transition-smooth w-full sm:w-auto">
+            <Button variant="gradient" className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               Add Transaction
             </Button>
@@ -258,47 +260,48 @@ const Transactions = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-        <Card className="hover-lift">
-          <CardContent className="p-4 md:p-6">
-            <div className="flex items-center justify-between">
+        <Card className="hover-lift border-0">
+          <CardContent className="p-6 md:p-7">
+            <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-xs md:text-sm font-medium text-muted-foreground">Total Income</p>
-                <p className="text-2xl md:text-3xl font-bold text-income">₹{stats.income.toLocaleString()}</p>
+                <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">Total Income</p>
+                <p className="text-3xl md:text-4xl font-bold text-income">₹{stats.income.toLocaleString()}</p>
               </div>
-              <div className="bg-gradient-to-br from-income to-green-600 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center flex-shrink-0">
-                <TrendingUp className="h-5 w-5 md:h-6 md:w-6 text-white" />
+              <div className="bg-gradient-veg w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-veg">
+                <TrendingUp className="h-7 w-7 md:h-8 md:w-8 text-white" />
               </div>
             </div>
           </CardContent>
         </Card>
         
-        <Card className="hover-lift">
-          <CardContent className="p-4 md:p-6">
-            <div className="flex items-center justify-between">
+        <Card className="hover-lift border-0">
+          <CardContent className="p-6 md:p-7">
+            <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-xs md:text-sm font-medium text-muted-foreground">Total Expenses</p>
-                <p className="text-2xl md:text-3xl font-bold text-expense">₹{stats.expenses.toLocaleString()}</p>
+                <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">Total Expenses</p>
+                <p className="text-3xl md:text-4xl font-bold text-expense">₹{stats.expenses.toLocaleString()}</p>
               </div>
-              <div className="bg-gradient-to-br from-expense to-red-600 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center flex-shrink-0">
-                <TrendingDown className="h-5 w-5 md:h-6 md:w-6 text-white" />
+              <div className="bg-gradient-non-veg w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-non-veg">
+                <TrendingDown className="h-7 w-7 md:h-8 md:w-8 text-white" />
               </div>
             </div>
           </CardContent>
         </Card>
         
-        <Card className="hover-lift sm:col-span-2 lg:col-span-1">
-          <CardContent className="p-4 md:p-6">
-            <div className="flex items-center justify-between">
+        <Card className="hover-lift sm:col-span-2 lg:col-span-1 border-0">
+          <CardContent className="p-6 md:p-7">
+            <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-xs md:text-sm font-medium text-muted-foreground">Net Profit</p>
-                <p className={`text-2xl md:text-3xl font-bold ${stats.profit >= 0 ? 'text-income' : 'text-expense'}`}>
+                <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">Net Profit</p>
+                <p className={`text-3xl md:text-4xl font-bold ${stats.profit >= 0 ? 'text-income' : 'text-expense'}`}>
                   ₹{stats.profit.toLocaleString()}
                 </p>
               </div>
-              <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center flex-shrink-0 ${
-                stats.profit >= 0 ? 'bg-gradient-to-br from-income to-green-600' : 'bg-gradient-to-br from-expense to-red-600'
-              }`}>
-                <span className="text-white text-lg md:text-xl">
+              <div className={cn(
+                "w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center flex-shrink-0",
+                stats.profit >= 0 ? 'bg-gradient-veg shadow-veg' : 'bg-gradient-non-veg shadow-non-veg'
+              )}>
+                <span className="text-white text-2xl md:text-3xl">
                   {stats.profit >= 0 ? '📈' : '📉'}
                 </span>
               </div>

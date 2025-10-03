@@ -8,61 +8,72 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Warm, cozy restaurant theme */
-    --background: 32 44% 97%;
-    --foreground: 20 14.3% 4.1%;
+    /* Modern minimalist restaurant theme */
+    --background: 210 20% 98%;
+    --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
-    --card-foreground: 20 14.3% 4.1%;
+    --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 20 14.3% 4.1%;
+    --popover-foreground: 222 47% 11%;
 
-    /* Warm terracotta primary */
-    --primary: 22 78% 55%;
+    /* Modern vibrant primary - Electric Blue */
+    --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
+    --primary-hover: 217 91% 50%;
 
-    /* Soft cream secondary */
-    --secondary: 42 47% 92%;
-    --secondary-foreground: 20 14.3% 4.1%;
+    /* Soft secondary - Light Gray */
+    --secondary: 214 32% 91%;
+    --secondary-foreground: 222 47% 11%;
 
-    --muted: 42 47% 92%;
-    --muted-foreground: 25 12% 40%;
+    --muted: 210 20% 96%;
+    --muted-foreground: 215 16% 47%;
 
-    --accent: 42 47% 92%;
-    --accent-foreground: 20 14.3% 4.1%;
+    --accent: 217 91% 95%;
+    --accent-foreground: 217 91% 60%;
 
-    /* Veg colors - modern emerald teal */
-    --veg: 158 64% 52%;
+    /* Modern veg colors - Fresh Mint */
+    --veg: 152 69% 54%;
     --veg-foreground: 0 0% 100%;
-    --veg-light: 158 50% 90%;
-
-    /* Non-veg colors - modern coral */
-    --non-veg: 14 90% 53%;
+    --veg-light: 152 40% 96%;
+    
+    /* Modern non-veg colors - Vibrant Coral */
+    --non-veg: 14 100% 63%;
     --non-veg-foreground: 0 0% 100%;
-    --non-veg-light: 14 70% 92%;
+    --non-veg-light: 14 80% 96%;
 
     /* Income/expense colors */
-    --income: 173 80% 40%;
+    --income: 152 69% 54%;
     --income-foreground: 0 0% 100%;
-    --expense: 14 90% 53%;
+    --expense: 14 100% 63%;
     --expense-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 42 20% 88%;
-    --input: 42 20% 88%;
-    --ring: 22 78% 55%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 217 91% 60%;
 
-    /* Custom shadows and gradients */
-    --shadow-warm: 0 10px 30px -10px hsl(22 78% 55% / 0.2);
-    --shadow-soft: 0 4px 20px -8px hsl(20 14.3% 4.1% / 0.1);
-    --gradient-warm: linear-gradient(135deg, hsl(var(--primary)), hsl(28 76% 58%));
-    --gradient-veg: linear-gradient(135deg, hsl(var(--veg)), hsl(168 76% 58%));
-    --gradient-non-veg: linear-gradient(135deg, hsl(var(--non-veg)), hsl(24 95% 58%));
+    /* Modern shadows and effects */
+    --shadow-sm: 0 1px 2px 0 hsl(222 47% 11% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(222 47% 11% / 0.1), 0 2px 4px -1px hsl(222 47% 11% / 0.06);
+    --shadow-lg: 0 10px 15px -3px hsl(222 47% 11% / 0.1), 0 4px 6px -2px hsl(222 47% 11% / 0.05);
+    --shadow-xl: 0 20px 25px -5px hsl(222 47% 11% / 0.1), 0 10px 10px -5px hsl(222 47% 11% / 0.04);
+    --shadow-primary: 0 10px 40px -10px hsl(217 91% 60% / 0.4);
+    --shadow-veg: 0 10px 40px -10px hsl(152 69% 54% / 0.3);
+    --shadow-non-veg: 0 10px 40px -10px hsl(14 100% 63% / 0.3);
+    
+    /* Modern gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(229 84% 70%));
+    --gradient-veg: linear-gradient(135deg, hsl(152 69% 54%), hsl(164 76% 62%));
+    --gradient-non-veg: linear-gradient(135deg, hsl(14 100% 63%), hsl(22 95% 70%));
+    --gradient-mesh: radial-gradient(at 40% 20%, hsl(217 91% 95%) 0px, transparent 50%),
+                     radial-gradient(at 80% 0%, hsl(152 40% 95%) 0px, transparent 50%),
+                     radial-gradient(at 0% 50%, hsl(14 80% 96%) 0px, transparent 50%);
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
     --sidebar-background: 0 0% 98%;
 
@@ -82,33 +93,34 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 222 47% 11%;
     --foreground: 210 40% 98%;
 
-    --card: 222.2 84% 4.9%;
+    --card: 222 38% 15%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 222.2 84% 4.9%;
+    --popover: 222 38% 15%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 217 91% 70%;
 
-    --secondary: 217.2 32.6% 17.5%;
+    --secondary: 217 33% 22%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 217 33% 22%;
+    --muted-foreground: 215 20% 65%;
 
-    --accent: 217.2 32.6% 17.5%;
+    --accent: 217 33% 22%;
     --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 63% 31%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --border: 217 33% 22%;
+    --input: 217 33% 22%;
+    --ring: 217 91% 60%;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -132,18 +144,22 @@ All colors MUST be HSL.
 }
 
 @layer components {
-  /* Custom shadows */
-  .shadow-warm {
-    box-shadow: var(--shadow-warm);
+  /* Modern shadows */
+  .shadow-card {
+    box-shadow: var(--shadow-md);
   }
   
-  .shadow-soft {
-    box-shadow: var(--shadow-soft);
+  .shadow-card-hover {
+    box-shadow: var(--shadow-xl);
+  }
+
+  .shadow-primary {
+    box-shadow: var(--shadow-primary);
   }
 
   /* Gradient backgrounds */
-  .bg-gradient-warm {
-    background: var(--gradient-warm);
+  .bg-gradient-primary {
+    background: var(--gradient-primary);
   }
   
   .bg-gradient-veg {
@@ -154,22 +170,48 @@ All colors MUST be HSL.
     background: var(--gradient-non-veg);
   }
 
+  .bg-gradient-mesh {
+    background: var(--gradient-mesh);
+  }
+
   /* Smooth transitions */
   .transition-smooth {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  /* Custom hover effects */
+  .transition-fast {
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Modern hover effects */
   .hover-lift {
-    @apply transition-smooth hover:scale-[1.02] hover:shadow-warm;
+    @apply transition-smooth hover:-translate-y-1 shadow-card hover:shadow-card-hover;
+  }
+
+  .hover-scale {
+    @apply transition-smooth hover:scale-105;
+  }
+
+  .hover-glow {
+    @apply transition-smooth hover:shadow-primary;
+  }
+
+  /* Modern card */
+  .card-modern {
+    @apply bg-card rounded-2xl shadow-card hover-lift border-0;
   }
 
   /* Food item type indicators */
   .veg-indicator {
-    @apply bg-veg text-veg-foreground;
+    @apply bg-veg text-veg-foreground shadow-veg;
   }
   
   .non-veg-indicator {
-    @apply bg-non-veg text-non-veg-foreground;
+    @apply bg-non-veg text-non-veg-foreground shadow-non-veg;
+  }
+
+  /* Glass morphism effect */
+  .glass {
+    @apply bg-card/80 backdrop-blur-lg border border-border/50;
   }
 }

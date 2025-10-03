@@ -46,44 +46,44 @@ const Navigation = () => {
 
       {/* Navigation sidebar */}
       <nav className={cn(
-        "fixed left-0 top-0 h-full bg-card border-r border-border shadow-soft z-40 transition-transform duration-300",
-        "w-72 md:w-64 p-4 md:p-6",
+        "fixed left-0 top-0 h-full glass border-r border-border/50 backdrop-blur-xl z-40 transition-all duration-300",
+        "w-72 md:w-72 p-5 md:p-6",
         isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
       )}>
-        <div className="flex items-center gap-3 mb-8 pt-2">
-          <div className="w-12 h-12 bg-gradient-warm rounded-xl flex items-center justify-center text-2xl shadow-md">
+        <div className="flex items-center gap-3 mb-10 pt-3">
+          <div className="w-14 h-14 bg-gradient-primary rounded-2xl flex items-center justify-center text-3xl shadow-primary">
             🍴
           </div>
           <div>
-            <h1 className="text-xl font-bold text-foreground">Dish Dash</h1>
-            <p className="text-xs text-muted-foreground">Restaurant Manager</p>
+            <h1 className="text-2xl font-bold text-foreground">Dish Dash</h1>
+            <p className="text-xs text-muted-foreground font-medium">Modern Restaurant Manager</p>
           </div>
         </div>
 
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           {navItems.map((item) => (
             <Link
               key={item.href}
               to={item.href}
               onClick={() => setIsOpen(false)}
               className={cn(
-                "flex items-center gap-3 px-4 py-3.5 rounded-xl transition-smooth",
+                "flex items-center gap-3 px-4 py-4 rounded-2xl transition-all duration-200 group",
                 isActive(item.href) 
-                  ? "bg-primary text-primary-foreground shadow-warm" 
-                  : "text-muted-foreground hover:text-foreground hover:bg-secondary/80"
+                  ? "bg-gradient-primary text-primary-foreground shadow-primary" 
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
               )}
             >
-              <span className="text-xl">{item.emoji}</span>
+              <span className="text-2xl transition-transform group-hover:scale-110">{item.emoji}</span>
               <item.icon className="h-5 w-5 flex-shrink-0" />
-              <span className="font-medium text-sm">{item.label}</span>
+              <span className="font-semibold text-sm">{item.label}</span>
             </Link>
           ))}
         </div>
 
-        <div className="absolute bottom-4 left-4 right-4">
-          <div className="bg-gradient-warm rounded-xl p-3 text-center shadow-md">
-            <p className="text-sm text-white/90 font-medium">Made with ❤️</p>
-            <p className="text-xs text-white/75">for food enthusiasts</p>
+        <div className="absolute bottom-6 left-5 right-5">
+          <div className="bg-gradient-primary rounded-2xl p-4 text-center shadow-primary">
+            <p className="text-sm text-white font-semibold">Made with ❤️</p>
+            <p className="text-xs text-white/80">for food enthusiasts</p>
           </div>
         </div>
       </nav>

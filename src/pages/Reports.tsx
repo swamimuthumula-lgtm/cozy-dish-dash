@@ -231,33 +231,37 @@ const Reports = () => {
   }
 
   return (
-    <div className="space-y-4 md:space-y-6">
+    <div className="space-y-6 md:space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-2">
-          📊 Reports & Analytics
+        <h1 className="text-3xl md:text-4xl font-bold text-foreground flex items-center gap-3">
+          <span className="text-4xl">📊</span>
+          Reports & Analytics
         </h1>
-        <p className="text-sm text-muted-foreground mt-1">Insights into your restaurant performance</p>
+        <p className="text-sm md:text-base text-muted-foreground mt-2 font-medium">Insights into your restaurant performance</p>
       </div>
 
       {/* Monthly Trends */}
-      <Card className="hover-lift">
+      <Card className="hover-lift border-0">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base md:text-lg">
-            <span className="text-base md:text-lg">📈</span>
+          <CardTitle className="flex items-center gap-3 text-xl md:text-2xl font-bold">
+            <span className="text-2xl">📈</span>
             Monthly Income vs Expenses
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-3 md:p-6">
-          <ResponsiveContainer width="100%" height={250}>
+        <CardContent className="p-4 md:p-6">
+          <ResponsiveContainer width="100%" height={300}>
             <BarChart data={reportData.monthlyTrends}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip formatter={(value) => [`₹${Number(value).toLocaleString()}`, ""]} />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis dataKey="month" stroke="hsl(var(--foreground))" />
+              <YAxis stroke="hsl(var(--foreground))" />
+              <Tooltip 
+                formatter={(value) => [`₹${Number(value).toLocaleString()}`, ""]}
+                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: 'var(--shadow-md)' }}
+              />
               <Legend />
-              <Bar dataKey="income" fill="hsl(var(--income))" name="Income" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="expense" fill="hsl(var(--expense))" name="Expenses" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="income" fill="hsl(var(--income))" name="Income" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="expense" fill="hsl(var(--expense))" name="Expenses" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>

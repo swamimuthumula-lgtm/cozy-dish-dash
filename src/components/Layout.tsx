@@ -7,10 +7,12 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-mesh">
       <Navigation />
-      <main className="md:ml-64 p-4 md:p-6 pt-16 md:pt-6">
-        {children}
+      <main className="md:ml-72 p-4 md:p-8 pt-20 md:pt-8">
+        <div className="max-w-7xl mx-auto">
+          {children}
+        </div>
       </main>
     </div>
   );
