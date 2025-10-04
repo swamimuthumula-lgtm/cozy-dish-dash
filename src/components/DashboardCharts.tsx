@@ -1,21 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 
-const vegNonVegData = [
-  { name: "Veg Items", value: 65, color: "hsl(var(--veg))" },
-  { name: "Non-Veg Items", value: 35, color: "hsl(var(--non-veg))" }
-];
+interface DashboardChartsProps {
+  vegNonVegData: Array<{ name: string; value: number; color: string }>;
+  monthlyData: Array<{ month: string; income: number; expense: number }>;
+}
 
-const monthlyData = [
-  { month: "Jan", income: 12000, expense: 8000 },
-  { month: "Feb", income: 15000, expense: 9000 },
-  { month: "Mar", income: 18000, expense: 10000 },
-  { month: "Apr", income: 16000, expense: 8500 },
-  { month: "May", income: 20000, expense: 11000 },
-  { month: "Jun", income: 22000, expense: 12000 },
-];
-
-const DashboardCharts = () => {
+const DashboardCharts = ({ vegNonVegData, monthlyData }: DashboardChartsProps) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-6">
       {/* Veg vs Non-Veg Sales */}

@@ -25,6 +25,8 @@ const Dashboard = () => {
     totalDishes: 0
   });
   const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
+  const [vegNonVegChartData, setVegNonVegChartData] = useState<any[]>([]);
+  const [monthlyChartData, setMonthlyChartData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,43 +35,80 @@ const Dashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      // Fetch transaction statistics
+      // Fetch all transactions with dish details
       const { data: transactions } = await supabase
-        .from('transactions')
-        .select('*');
-
-      // Calculate income and expenses
-      const income = transactions?.filter(t => t.type === 'income').reduce((sum, t) => sum + Number(t.amount), 0) || 0;
-      const expenses = transactions?.filter(t => t.type === 'expense').reduce((sum, t) => sum + Number(t.amount), 0) || 0;
-
-      // Fetch dish data for veg/non-veg statistics
-      const { data: dishes } = await supabase
-        .from('dishes')
-        .select('*, transactions(*)');
-
-      const vegSales = dishes?.filter(d => d.type === 'veg').length || 0;
-      const nonVegSales = dishes?.filter(d => d.type === 'non_veg').length || 0;
-
-      // Get recent transactions with dish details
-      const { data: recentTx } = await supabase
         .from('transactions')
         .select(`
           *,
           dishes(name, type)
-        `)
-        .order('transaction_date', { ascending: false })
-        .limit(5);
+        `);
+
+      if (!transactions) return;
+
+      // Calculate income and expenses
+      const income = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + Number(t.amount), 0);
+      const expenses = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + Number(t.amount), 0);
+
+      // Calculate veg vs non-veg sales revenue
+      let vegRevenue = 0;
+      let nonVegRevenue = 0;
+      transactions.forEach(t => {
+        if (t.type === 'income' && t.dishes) {
+          if (t.dishes.type === 'veg') {
+            vegRevenue += Number(t.amount);
+          } else if (t.dishes.type === 'non_veg') {
+            nonVegRevenue += Number(t.amount);
+          }
+        }
+      });
+
+      // Calculate monthly data
+      const monthlyMap = new Map();
+      transactions.forEach(t => {
+        const date = new Date(t.transaction_date);
+        const monthKey = date.toLocaleDateString('en-US', { month: 'short' });
+        
+        if (!monthlyMap.has(monthKey)) {
+          monthlyMap.set(monthKey, { month: monthKey, income: 0, expense: 0 });
+        }
+        
+        const monthData = monthlyMap.get(monthKey);
+        if (t.type === 'income') {
+          monthData.income += Number(t.amount);
+        } else {
+          monthData.expense += Number(t.amount);
+        }
+      });
+
+      // Fetch dish data
+      const { data: dishes } = await supabase
+        .from('dishes')
+        .select('type');
+
+      const vegCount = dishes?.filter(d => d.type === 'veg').length || 0;
+      const nonVegCount = dishes?.filter(d => d.type === 'non_veg').length || 0;
+
+      // Get recent transactions
+      const recentTx = transactions
+        .sort((a, b) => new Date(b.transaction_date).getTime() - new Date(a.transaction_date).getTime())
+        .slice(0, 5);
 
       setStats({
         totalIncome: income,
         totalExpenses: expenses,
         profit: income - expenses,
-        vegSales,
-        nonVegSales,
+        vegSales: vegCount,
+        nonVegSales: nonVegCount,
         totalDishes: dishes?.length || 0
       });
 
-      setRecentTransactions(recentTx || []);
+      setVegNonVegChartData([
+        { name: "Veg Items", value: vegRevenue, color: "hsl(var(--veg))" },
+        { name: "Non-Veg Items", value: nonVegRevenue, color: "hsl(var(--non-veg))" }
+      ]);
+
+      setMonthlyChartData(Array.from(monthlyMap.values()));
+      setRecentTransactions(recentTx);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -110,21 +149,18 @@ const Dashboard = () => {
           value={`₹${stats.totalIncome.toLocaleString()}`}
           icon="💰"
           gradient="bg-gradient-veg"
-          trend={{ value: 12, isPositive: true }}
         />
         <KPICard
           title="Total Expenses"
           value={`₹${stats.totalExpenses.toLocaleString()}`}
           icon="💸"
           gradient="bg-gradient-non-veg"
-          trend={{ value: 5, isPositive: false }}
         />
         <KPICard
           title="Profit"
           value={`₹${stats.profit.toLocaleString()}`}
           icon="📈"
           gradient={stats.profit >= 0 ? "bg-gradient-veg" : "bg-gradient-non-veg"}
-          trend={{ value: 8, isPositive: stats.profit >= 0 }}
         />
         <KPICard
           title="Total Dishes"
@@ -166,7 +202,7 @@ const Dashboard = () => {
       </div>
 
       {/* Charts */}
-      <DashboardCharts />
+      <DashboardCharts vegNonVegData={vegNonVegChartData} monthlyData={monthlyChartData} />
 
       {/* Recent Transactions */}
       <Card className="hover-lift border-0">
