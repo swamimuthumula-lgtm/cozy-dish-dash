@@ -344,7 +344,7 @@ const Menu = () => {
       </Card>
 
       {/* Dishes Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5 md:gap-6">
         {filteredDishes.map((dish) => (
           <Card key={dish.id} className="hover-lift border-0 overflow-hidden">
             <CardHeader className="pb-4 bg-gradient-to-br from-accent/50 to-transparent">
