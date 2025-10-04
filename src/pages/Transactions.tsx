@@ -45,7 +45,7 @@ const Transactions = () => {
     type: "income" as "income" | "expense",
     amount: "",
     description: "",
-    dish_id: "",
+    dish_id: "none",
     quantity: "1"
   });
 
@@ -85,8 +85,8 @@ const Transactions = () => {
         type: formData.type,
         amount: parseFloat(formData.amount),
         description: formData.description,
-        dish_id: formData.dish_id || null,
-        quantity: formData.dish_id ? parseInt(formData.quantity) : null
+        dish_id: formData.dish_id && formData.dish_id !== "none" ? formData.dish_id : null,
+        quantity: formData.dish_id && formData.dish_id !== "none" ? parseInt(formData.quantity) : null
       };
 
       const { error } = await supabase
@@ -117,7 +117,7 @@ const Transactions = () => {
       type: "income",
       amount: "",
       description: "",
-      dish_id: "",
+      dish_id: "none",
       quantity: "1"
     });
     setIsAddDialogOpen(false);
@@ -219,7 +219,7 @@ const Transactions = () => {
                         <SelectValue placeholder="Select dish (optional)" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">No specific dish</SelectItem>
+                        <SelectItem value="none">No specific dish</SelectItem>
                         {dishes.map((dish) => (
                           <SelectItem key={dish.id} value={dish.id}>
                             {dish.type === 'veg' ? '🌿' : '🍗'} {dish.name} - ₹{dish.price}
@@ -229,7 +229,7 @@ const Transactions = () => {
                     </Select>
                   </div>
                   
-                  {formData.dish_id && (
+                  {formData.dish_id && formData.dish_id !== "none" && (
                     <div>
                       <Label htmlFor="quantity">Quantity</Label>
                       <Input
