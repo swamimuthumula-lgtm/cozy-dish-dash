@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Plus, TrendingUp, TrendingDown, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Transaction {
   id: string;
@@ -40,6 +41,7 @@ const Transactions = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'income' | 'expense'>('all');
   const { toast } = useToast();
+  const { isAdmin } = useAuth();
 
   const [formData, setFormData] = useState({
     type: "income" as "income" | "expense",
@@ -159,10 +161,11 @@ const Transactions = () => {
           <p className="text-sm md:text-base text-muted-foreground mt-2 font-medium">Track your income and expenses</p>
         </div>
         
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button variant="gradient" className="w-full sm:w-auto">
-              <Plus className="h-4 w-4 mr-2" />
+        {isAdmin && (
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="gradient" className="w-full sm:w-auto">
+                <Plus className="h-4 w-4 mr-2" />
               Add Transaction
             </Button>
           </DialogTrigger>
@@ -256,6 +259,7 @@ const Transactions = () => {
             </form>
           </DialogContent>
         </Dialog>
+        )}
       </div>
 
       {/* Stats Cards */}

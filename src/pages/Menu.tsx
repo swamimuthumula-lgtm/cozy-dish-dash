@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Plus, Edit, Trash2, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Dish {
   id: string;
@@ -38,6 +39,7 @@ const Menu = () => {
   const [editingDish, setEditingDish] = useState<Dish | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { isAdmin } = useAuth();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -208,13 +210,14 @@ const Menu = () => {
           <p className="text-sm md:text-base text-muted-foreground mt-2 font-medium">Manage your delicious dishes</p>
         </div>
         
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button variant="gradient" className="w-full sm:w-auto">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Dish
-            </Button>
-          </DialogTrigger>
+        {isAdmin && (
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="gradient" className="w-full sm:w-auto">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Dish
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>
@@ -309,6 +312,7 @@ const Menu = () => {
             </form>
           </DialogContent>
         </Dialog>
+        )}
       </div>
 
       {/* Filters */}
@@ -365,24 +369,26 @@ const Menu = () => {
                     )}
                   </div>
                 </div>
-                <div className="flex gap-2 flex-shrink-0">
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    className="h-9 w-9 rounded-xl"
-                    onClick={() => handleEdit(dish)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    className="h-9 w-9 rounded-xl"
-                    onClick={() => handleDelete(dish.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
+                {isAdmin && (
+                  <div className="flex gap-2 flex-shrink-0">
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      className="h-9 w-9 rounded-xl"
+                      onClick={() => handleEdit(dish)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      className="h-9 w-9 rounded-xl"
+                      onClick={() => handleDelete(dish.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
               </div>
             </CardHeader>
             <CardContent className="pt-4">

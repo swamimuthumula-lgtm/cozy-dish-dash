@@ -6,14 +6,18 @@ import {
   TrendingUp, 
   FileBarChart, 
   Menu as MenuIcon,
-  X 
+  X,
+  LogOut,
+  Shield
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const { isAdmin, signOut, user } = useAuth();
 
   const navItems = [
     { href: "/", label: "Dashboard", icon: Home, emoji: "🏠" },
@@ -57,6 +61,12 @@ const Navigation = () => {
           <div>
             <h1 className="text-2xl font-bold text-foreground">Dish Dash</h1>
             <p className="text-xs text-muted-foreground font-medium">Modern Restaurant Manager</p>
+            {isAdmin && (
+              <div className="mt-1 flex items-center gap-1 text-xs">
+                <Shield className="h-3 w-3" />
+                <span>Admin</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -80,7 +90,18 @@ const Navigation = () => {
           ))}
         </div>
 
-        <div className="absolute bottom-6 left-5 right-5">
+        <div className="absolute bottom-6 left-5 right-5 space-y-3">
+          {user && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full"
+              onClick={signOut}
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
+          )}
           <div className="bg-gradient-primary rounded-2xl p-4 text-center shadow-primary">
             <p className="text-sm text-white font-semibold">Made with ❤️</p>
             <p className="text-xs text-white/80">for food enthusiasts</p>

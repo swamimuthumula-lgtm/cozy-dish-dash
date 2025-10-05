@@ -9,6 +9,8 @@ import Menu from "./pages/Menu";
 import Transactions from "./pages/Transactions";
 import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
+import Auth from "./pages/Auth";
+import { AuthProvider } from "./hooks/useAuth";
 
 const queryClient = new QueryClient();
 
@@ -18,16 +20,17 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Layout>
+        <AuthProvider>
           <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/menu" element={<Menu />} />
-            <Route path="/transactions" element={<Transactions />} />
-            <Route path="/reports" element={<Reports />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/" element={<Layout><Dashboard /></Layout>} />
+            <Route path="/menu" element={<Layout><Menu /></Layout>} />
+            <Route path="/transactions" element={<Layout><Transactions /></Layout>} />
+            <Route path="/reports" element={<Layout><Reports /></Layout>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
+            <Route path="*" element={<Layout><NotFound /></Layout>} />
           </Routes>
-        </Layout>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
