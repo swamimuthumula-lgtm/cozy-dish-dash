@@ -1,5 +1,4 @@
-import { ReactNode, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { ReactNode } from "react";
 import Navigation from "./Navigation";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -8,15 +7,7 @@ interface LayoutProps {
 }
 
 const Layout = ({ children }: LayoutProps) => {
-  const { user, loading } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  useEffect(() => {
-    if (!loading && !user && location.pathname !== '/auth') {
-      navigate('/auth');
-    }
-  }, [user, loading, navigate, location]);
+  const { loading } = useAuth();
 
   if (loading) {
     return (
@@ -27,10 +18,6 @@ const Layout = ({ children }: LayoutProps) => {
         </div>
       </div>
     );
-  }
-
-  if (!user) {
-    return null;
   }
 
   return (

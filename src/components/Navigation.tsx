@@ -91,7 +91,7 @@ const Navigation = () => {
         </div>
 
         <div className="absolute bottom-6 left-5 right-5 space-y-3">
-          {user && (
+          {user ? (
             <Button
               variant="outline"
               size="sm"
@@ -101,6 +101,16 @@ const Navigation = () => {
               <LogOut className="h-4 w-4 mr-2" />
               Sign Out
             </Button>
+          ) : (
+            <Link to="/auth">
+              <Button
+                variant="default"
+                size="sm"
+                className="w-full"
+              >
+                Admin Login
+              </Button>
+            </Link>
           )}
           <div className="bg-gradient-primary rounded-2xl p-4 text-center shadow-primary">
             <p className="text-sm text-white font-semibold">Made with ❤️</p>
