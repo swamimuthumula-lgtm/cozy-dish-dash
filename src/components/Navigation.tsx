@@ -17,7 +17,7 @@ import { useAuth } from "@/hooks/useAuth";
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  const { isAdmin, signOut, user } = useAuth();
+  const { isAdmin, signOut } = useAuth();
 
   const navItems = [
     { href: "/", label: "Dashboard", icon: Home, emoji: "🏠" },
@@ -91,7 +91,7 @@ const Navigation = () => {
         </div>
 
         <div className="absolute bottom-6 left-5 right-5 space-y-3">
-          {user ? (
+          {isAdmin ? (
             <Button
               variant="outline"
               size="sm"
