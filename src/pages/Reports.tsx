@@ -1,249 +1,176 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import KPICard from "@/components/KPICard";
+import DashboardCharts from "@/components/DashboardCharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend, 
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  LineChart,
-  Line
-} from "recharts";
+import { cn } from "@/lib/utils";
 
-interface ReportData {
-  monthlyTrends: any[];
-  vegNonVegSales: any[];
-  topDishes: any[];
-  categoryBreakdown: any[];
-  dailyRevenue: any[];
-  workersMonthlyPayments: any[];
+interface DashboardStats {
+  totalIncome: number;
+  totalExpenses: number;
+  profit: number;
+  vegSales: number;
+  nonVegSales: number;
+  totalDishes: number;
+  totalWorkersPayment: number;
 }
 
-const Reports = () => {
-  const [reportData, setReportData] = useState<ReportData>({
-    monthlyTrends: [],
-    vegNonVegSales: [],
-    topDishes: [],
-    categoryBreakdown: [],
-    dailyRevenue: [],
-    workersMonthlyPayments: []
+const Dashboard = () => {
+  const [stats, setStats] = useState<DashboardStats>({
+    totalIncome: 0,
+    totalExpenses: 0,
+    profit: 0,
+    vegSales: 0,
+    nonVegSales: 0,
+    totalDishes: 0,
+    totalWorkersPayment: 0
   });
+  const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
+  const [vegNonVegChartData, setVegNonVegChartData] = useState<any[]>([]);
+  const [monthlyChartData, setMonthlyChartData] = useState<any[]>([]);
+  const [dailyChartData, setDailyChartData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchReportData();
+    fetchDashboardData();
   }, []);
 
-  const fetchReportData = async () => {
+  const fetchDashboardData = async () => {
     try {
-      // Fetch transactions, dishes, and workers data in parallel
-      const [transactionsRes, dishesRes, workersRes] = await Promise.all([
-        supabase.from('transactions').select(`
+      // Fetch all transactions with dish details
+      const { data: transactions } = await supabase
+        .from('transactions')
+        .select(`
           *,
-          dishes(name, type, categories(name))
-        `),
-        supabase.from('dishes').select(`
-          *,
-          categories(name, icon),
-          transactions(*)
-        `),
+          dishes(name, type)
+        `);
+
+      if (!transactions) return;
+
+      // Calculate income and expenses
+      const income = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + Number(t.amount), 0);
+      const expenses = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + Number(t.amount), 0);
+
+      // Calculate veg vs non-veg sales revenue
+      let vegRevenue = 0;
+      let nonVegRevenue = 0;
+      transactions.forEach(t => {
+        if (t.type === 'income' && t.dishes) {
+          if (t.dishes.type === 'veg') {
+            vegRevenue += Number(t.amount);
+          } else if (t.dishes.type === 'non_veg') {
+            nonVegRevenue += Number(t.amount);
+          }
+        }
+      });
+
+      // Calculate monthly data
+      const monthlyMap = new Map();
+      // Build daily map for current month
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth();
+      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+      const dailyMap: Record<string, { day: string; income: number; expense: number; workers: number }> = {};
+      let lastDayWithData = 0;
+      for (let d = 1; d <= daysInMonth; d++) {
+        const key = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        dailyMap[key] = { day: String(d), income: 0, expense: 0, workers: 0 };
+      }
+      transactions.forEach(t => {
+        const date = new Date(t.transaction_date);
+        const monthKey = date.toLocaleDateString('en-US', { month: 'short' });
+        
+        if (!monthlyMap.has(monthKey)) {
+          monthlyMap.set(monthKey, { month: monthKey, income: 0, expense: 0 });
+        }
+        
+        const monthData = monthlyMap.get(monthKey);
+        if (t.type === 'income') {
+          monthData.income += Number(t.amount);
+        } else {
+          monthData.expense += Number(t.amount);
+        }
+
+        // if in current month, add to daily
+        if (date.getFullYear() === currentYear && date.getMonth() === currentMonth) {
+          const dayKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+          if (!dailyMap[dayKey]) {
+            dailyMap[dayKey] = { day: String(date.getDate()), income: 0, expense: 0, workers: 0 };
+          }
+          if (t.type === 'income') {
+            dailyMap[dayKey].income += Number(t.amount);
+          } else {
+            dailyMap[dayKey].expense += Number(t.amount);
+          }
+          if (date.getDate() > lastDayWithData) lastDayWithData = date.getDate();
+        }
+      });
+
+      // Fetch dish data and workers data
+      const [dishesRes, workersRes] = await Promise.all([
+        supabase.from('dishes').select('type'),
         supabase.from('workers').select('payment, created_at')
       ]);
 
-      const transactions = transactionsRes.data || [];
       const dishes = dishesRes.data || [];
+      const vegCount = dishes.filter(d => d.type === 'veg').length || 0;
+      const nonVegCount = dishes.filter(d => d.type === 'non_veg').length || 0;
       const workers = workersRes.data || [];
+      const totalWorkersPayment = workers.reduce((sum, w: any) => sum + Number(w.payment || 0), 0);
+      // add workers to daily map for current month
+      workers.forEach((w: any) => {
+        const d = new Date(w.created_at);
+        if (d.getFullYear() === currentYear && d.getMonth() === currentMonth) {
+          const dayKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+          if (!dailyMap[dayKey]) {
+            dailyMap[dayKey] = { day: String(d.getDate()), income: 0, expense: 0, workers: 0 };
+          }
+          dailyMap[dayKey].workers += Number(w.payment || 0);
+          if (d.getDate() > lastDayWithData) lastDayWithData = d.getDate();
+        }
+      });
 
-      processReportData(transactions, dishes, workers);
+      // Get recent transactions
+      const recentTx = transactions
+        .sort((a, b) => new Date(b.transaction_date).getTime() - new Date(a.transaction_date).getTime())
+        .slice(0, 5);
+
+      setStats({
+        totalIncome: income,
+        totalExpenses: expenses + totalWorkersPayment,
+        profit: income - (expenses + totalWorkersPayment),
+        vegSales: vegCount,
+        nonVegSales: nonVegCount,
+        totalDishes: dishes.length || 0,
+        totalWorkersPayment
+      });
+
+      setVegNonVegChartData([
+        { name: "Veg Items", value: vegRevenue, color: "hsl(var(--veg))" },
+        { name: "Non-Veg Items", value: nonVegRevenue, color: "hsl(var(--non-veg))" }
+      ]);
+
+      setMonthlyChartData(Array.from(monthlyMap.values()));
+      const dailyValues = Object.values(dailyMap)
+        .sort((a, b) => Number(a.day) - Number(b.day))
+        .filter(entry => (lastDayWithData > 0 ? Number(entry.day) <= lastDayWithData : true));
+      setDailyChartData(dailyValues);
+      setRecentTransactions(recentTx);
     } catch (error) {
-      console.error('Error fetching report data:', error);
+      console.error('Error fetching dashboard data:', error);
     } finally {
       setLoading(false);
     }
-  };
-
-  const processReportData = (transactions: any[], dishes: any[], workers: any[]) => {
-    // Monthly trends
-    const monthlyData = processMonthlyTrends(transactions);
-    
-    // Veg vs Non-Veg sales
-    const vegNonVegData = processVegNonVegSales(transactions);
-    
-    // Top selling dishes
-    const topDishesData = processTopDishes(transactions);
-    
-    // Category breakdown
-    const categoryData = processCategoryBreakdown(dishes);
-    
-    // Daily revenue (last 7 days)
-    const dailyData = processDailyRevenue(transactions);
-
-    // Workers monthly payments
-    const workersPayments = processWorkersMonthlyPayments(workers);
-
-    setReportData({
-      monthlyTrends: monthlyData,
-      vegNonVegSales: vegNonVegData,
-      topDishes: topDishesData,
-      categoryBreakdown: categoryData,
-      dailyRevenue: dailyData,
-      workersMonthlyPayments: workersPayments
-    });
-  };
-
-  const processMonthlyTrends = (transactions: any[]) => {
-    const monthlyMap = new Map();
-    
-    transactions.forEach(transaction => {
-      const date = new Date(transaction.transaction_date);
-      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      
-      if (!monthlyMap.has(monthKey)) {
-        monthlyMap.set(monthKey, { month: monthKey, income: 0, expense: 0 });
-      }
-      
-      const monthData = monthlyMap.get(monthKey);
-      if (transaction.type === 'income') {
-        monthData.income += Number(transaction.amount);
-      } else {
-        monthData.expense += Number(transaction.amount);
-      }
-    });
-    
-    return Array.from(monthlyMap.values()).sort((a, b) => a.month.localeCompare(b.month));
-  };
-
-  const processVegNonVegSales = (transactions: any[]) => {
-    let vegSales = 0;
-    let nonVegSales = 0;
-    
-    transactions.forEach(transaction => {
-      if (transaction.type === 'income' && transaction.dishes) {
-        if (transaction.dishes.type === 'veg') {
-          vegSales += Number(transaction.amount);
-        } else if (transaction.dishes.type === 'non_veg') {
-          nonVegSales += Number(transaction.amount);
-        }
-      }
-    });
-    
-    const total = vegSales + nonVegSales;
-    return [
-      { 
-        name: "Veg Items", 
-        value: vegSales, 
-        percentage: total > 0 ? Math.round((vegSales / total) * 100) : 0,
-        color: "hsl(var(--veg))" 
-      },
-      { 
-        name: "Non-Veg Items", 
-        value: nonVegSales, 
-        percentage: total > 0 ? Math.round((nonVegSales / total) * 100) : 0,
-        color: "hsl(var(--non-veg))" 
-      }
-    ];
-  };
-
-  const processTopDishes = (transactions: any[]) => {
-    const dishSales = new Map();
-    
-    transactions.forEach(transaction => {
-      if (transaction.type === 'income' && transaction.dishes) {
-        const dishName = transaction.dishes.name;
-        if (!dishSales.has(dishName)) {
-          dishSales.set(dishName, {
-            name: dishName,
-            sales: 0,
-            quantity: 0,
-            type: transaction.dishes.type
-          });
-        }
-        
-        const dish = dishSales.get(dishName);
-        dish.sales += Number(transaction.amount);
-        dish.quantity += transaction.quantity || 1;
-      }
-    });
-    
-    return Array.from(dishSales.values())
-      .sort((a, b) => b.sales - a.sales)
-      .slice(0, 5);
-  };
-
-  const processCategoryBreakdown = (dishes: any[]) => {
-    const categoryMap = new Map();
-    
-    dishes.forEach(dish => {
-      const categoryName = dish.categories?.name || 'Uncategorized';
-      if (!categoryMap.has(categoryName)) {
-        categoryMap.set(categoryName, {
-          name: categoryName,
-          dishes: 0,
-          vegCount: 0,
-          nonVegCount: 0
-        });
-      }
-      
-      const category = categoryMap.get(categoryName);
-      category.dishes += 1;
-      if (dish.type === 'veg') {
-        category.vegCount += 1;
-      } else {
-        category.nonVegCount += 1;
-      }
-    });
-    
-    return Array.from(categoryMap.values());
-  };
-
-  const processDailyRevenue = (transactions: any[]) => {
-    const last7Days = [];
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      const dateKey = date.toISOString().split('T')[0];
-      
-      const dayRevenue = transactions
-        .filter(t => t.type === 'income' && t.transaction_date.startsWith(dateKey))
-        .reduce((sum, t) => sum + Number(t.amount), 0);
-      
-      last7Days.push({
-        date: date.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric' }),
-        revenue: dayRevenue
-      });
-    }
-    
-    return last7Days;
-  };
-
-  const processWorkersMonthlyPayments = (workers: any[]) => {
-    const monthlyMap = new Map();
-    workers.forEach((w) => {
-      const date = new Date(w.created_at);
-      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      if (!monthlyMap.has(monthKey)) {
-        monthlyMap.set(monthKey, { month: monthKey, payment: 0 });
-      }
-      const entry = monthlyMap.get(monthKey);
-      entry.payment += Number(w.payment || 0);
-    });
-    return Array.from(monthlyMap.values()).sort((a, b) => a.month.localeCompare(b.month));
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="text-4xl mb-4">📊</div>
-          <p className="text-muted-foreground">Generating reports...</p>
+          <div className="text-4xl mb-4">🍽️</div>
+          <p className="text-muted-foreground">Loading your restaurant dashboard...</p>
         </div>
       </div>
     );
@@ -252,213 +179,145 @@ const Reports = () => {
   return (
     <div className="space-y-6 md:space-y-8">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl md:text-4xl font-bold text-foreground flex items-center gap-3">
-          <span className="text-4xl">📊</span>
-          Reports & Analytics
+      <div className="text-center mb-6 md:mb-10">
+        <div className="inline-block mb-4">
+          <div className="text-6xl md:text-7xl mb-2 animate-bounce">🍴</div>
+        </div>
+        <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-3 bg-gradient-primary bg-clip-text text-transparent">
+          Welcome to Dish Dash!
         </h1>
-        <p className="text-sm md:text-base text-muted-foreground mt-2 font-medium">Insights into your restaurant performance</p>
+        <p className="text-base md:text-lg text-muted-foreground font-medium">
+          Your modern restaurant management dashboard
+        </p>
       </div>
 
-      {/* Monthly Trends */}
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+        <KPICard
+          title="Total Income"
+          value={`₹${stats.totalIncome.toLocaleString()}`}
+          icon="💰"
+          gradient="bg-gradient-veg"
+        />
+        <KPICard
+          title="Total Expenses"
+          value={`₹${stats.totalExpenses.toLocaleString()}`}
+          icon="💸"
+          gradient="bg-gradient-non-veg"
+        />
+        <KPICard
+          title="Profit"
+          value={`₹${stats.profit.toLocaleString()}`}
+          icon="📈"
+          gradient={stats.profit >= 0 ? "bg-gradient-veg" : "bg-gradient-non-veg"}
+        />
+        <KPICard
+          title="Total Dishes"
+          value={stats.totalDishes}
+          icon="🍽️"
+          gradient="bg-gradient-primary"
+        />
+        <KPICard
+          title="Workers Payment"
+          value={`₹${stats.totalWorkersPayment.toLocaleString()}`}
+          icon="🧾"
+          gradient="bg-gradient-non-veg"
+          className="xl:col-span-1"
+        />
+      </div>
+
+      {/* Veg vs Non-Veg Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+        <Card className="hover-lift border-0">
+          <CardContent className="p-6 md:p-8">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">Veg Dishes</p>
+                <p className="text-4xl md:text-5xl font-bold text-veg">{stats.vegSales}</p>
+              </div>
+              <div className="bg-gradient-veg w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center text-3xl md:text-4xl shadow-veg">
+                🌿
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="hover-lift border-0">
+          <CardContent className="p-6 md:p-8">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">Non-Veg Dishes</p>
+                <p className="text-4xl md:text-5xl font-bold text-non-veg">{stats.nonVegSales}</p>
+              </div>
+              <div className="bg-gradient-non-veg w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center text-3xl md:text-4xl shadow-non-veg">
+                🍗
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Charts */}
+      <DashboardCharts vegNonVegData={vegNonVegChartData} monthlyData={monthlyChartData} dailyData={dailyChartData} />
+
+      {/* Recent Transactions */}
       <Card className="hover-lift border-0">
-        <CardHeader>
+        <CardHeader className="pb-4">
           <CardTitle className="flex items-center gap-3 text-xl md:text-2xl font-bold">
-            <span className="text-2xl">📈</span>
-            Monthly Income vs Expenses
+            <span className="text-2xl">⏰</span>
+            Recent Transactions
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-4 md:p-6">
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={reportData.monthlyTrends}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="month" stroke="hsl(var(--foreground))" />
-              <YAxis stroke="hsl(var(--foreground))" />
-              <Tooltip 
-                formatter={(value) => [`₹${Number(value).toLocaleString()}`, ""]}
-                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: 'var(--shadow-md)' }}
-              />
-              <Legend />
-              <Bar dataKey="income" fill="hsl(var(--income))" name="Income" radius={[8, 8, 0, 0]} />
-              <Bar dataKey="expense" fill="hsl(var(--expense))" name="Expenses" radius={[8, 8, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+        <CardContent>
+          <div className="space-y-3 md:space-y-4">
+            {recentTransactions.map((transaction) => (
+              <div key={transaction.id} className="flex items-center justify-between p-4 md:p-5 bg-accent rounded-2xl hover-lift">
+                <div className="flex items-center gap-3 md:gap-4 min-w-0 flex-1">
+                  <div className={cn(
+                    "w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md",
+                    transaction.type === 'income' ? 'bg-gradient-veg' : 'bg-gradient-non-veg'
+                  )}>
+                    <span className="text-lg md:text-xl">{transaction.type === 'income' ? '💰' : '💸'}</span>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-sm md:text-base truncate">{transaction.description}</p>
+                    {transaction.dishes && (
+                      <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                        <Badge 
+                          variant={transaction.dishes.type === 'veg' ? 'secondary' : 'destructive'} 
+                          className="text-xs font-semibold"
+                        >
+                          {transaction.dishes.type === 'veg' ? '🌿 Veg' : '🍗 Non-Veg'}
+                        </Badge>
+                        <span className="text-xs md:text-sm text-muted-foreground font-medium truncate">{transaction.dishes.name}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="text-right flex-shrink-0 ml-3">
+                  <p className={cn(
+                    "font-bold text-base md:text-lg",
+                    transaction.type === 'income' ? 'text-income' : 'text-expense'
+                  )}>
+                    {transaction.type === 'income' ? '+' : '-'}₹{Number(transaction.amount).toLocaleString()}
+                  </p>
+                  <p className="text-xs text-muted-foreground font-medium">
+                    {new Date(transaction.transaction_date).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+            ))}
+            {recentTransactions.length === 0 && (
+              <div className="text-center py-12 text-muted-foreground">
+                <div className="text-6xl mb-4">🍽️</div>
+                <p className="text-lg font-medium">No transactions yet. Start adding your first sale!</p>
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
-
-      {/* Veg vs Non-Veg Sales & Daily Revenue */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-        <Card className="hover-lift">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
-              <span className="text-base md:text-lg">🥘</span>
-              Veg vs Non-Veg Revenue
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-3 md:p-6">
-            <ResponsiveContainer width="100%" height={220}>
-              <PieChart>
-                <Pie
-                  data={reportData.vegNonVegSales}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percentage }) => `${name} ${percentage}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {reportData.vegNonVegSales.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => [`₹${Number(value).toLocaleString()}`, ""]} />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="flex justify-center gap-4 mt-4">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-veg rounded-full"></div>
-                <span className="text-sm">🌿 Veg: ₹{reportData.vegNonVegSales[0]?.value.toLocaleString() || 0}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-non-veg rounded-full"></div>
-                <span className="text-sm">🍗 Non-Veg: ₹{reportData.vegNonVegSales[1]?.value.toLocaleString() || 0}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="hover-lift lg:col-span-1">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
-              <span className="text-base md:text-lg">📅</span>
-              Daily Revenue (Last 7 Days)
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-3 md:p-6">
-            <ResponsiveContainer width="100%" height={220}>
-              <LineChart data={reportData.dailyRevenue}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip formatter={(value) => [`₹${Number(value).toLocaleString()}`, "Revenue"]} />
-                <Line 
-                  type="monotone" 
-                  dataKey="revenue" 
-                  stroke="hsl(var(--primary))" 
-                  strokeWidth={3}
-                  dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 6 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card className="hover-lift lg:col-span-1">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
-              <span className="text-base md:text-lg">🧾</span>
-              Workers Monthly Payments
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-3 md:p-6">
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={reportData.workersMonthlyPayments}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip formatter={(value) => [`₹${Number(value).toLocaleString()}`, "Payments"]} />
-                <Legend />
-                <Bar dataKey="payment" fill="hsl(var(--expense))" name="Payments" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Top Dishes & Category Breakdown */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-        <Card className="hover-lift">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
-              <span className="text-base md:text-lg">🏆</span>
-              Top Selling Dishes
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3 md:space-y-4">
-              {reportData.topDishes.map((dish, index) => (
-                <div key={dish.name} className="flex items-center justify-between p-3 bg-secondary rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold">
-                      #{index + 1}
-                    </div>
-                    <div>
-                      <p className="font-medium">{dish.name}</p>
-                      <div className="flex items-center gap-2">
-                        <Badge variant={dish.type === 'veg' ? 'secondary' : 'destructive'} className="text-xs">
-                          {dish.type === 'veg' ? '🌿 Veg' : '🍗 Non-Veg'}
-                        </Badge>
-                        <span className="text-sm text-muted-foreground">
-                          {dish.quantity} orders
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-primary">₹{dish.sales.toLocaleString()}</p>
-                  </div>
-                </div>
-              ))}
-              {reportData.topDishes.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground">
-                  <div className="text-4xl mb-2">🍽️</div>
-                  <p>No sales data available</p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="hover-lift">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
-              <span className="text-base md:text-lg">📋</span>
-              Category Breakdown
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3 md:space-y-4">
-              {reportData.categoryBreakdown.map((category) => (
-                <div key={category.name} className="p-4 bg-secondary rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium">{category.name}</h4>
-                    <span className="text-sm font-bold">{category.dishes} dishes</span>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-veg rounded-full"></div>
-                      <span className="text-sm">🌿 {category.vegCount} Veg</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-non-veg rounded-full"></div>
-                      <span className="text-sm">🍗 {category.nonVegCount} Non-Veg</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-              {reportData.categoryBreakdown.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground">
-                  <div className="text-4xl mb-2">📂</div>
-                  <p>No categories found</p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 };
 
-export default Reports;
+export default Dashboard;
