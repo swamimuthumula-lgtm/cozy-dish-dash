@@ -13,6 +13,7 @@ interface DashboardStats {
   vegSales: number;
   nonVegSales: number;
   totalDishes: number;
+  totalWorkersPayment: number;
 }
 
 const Dashboard = () => {
@@ -22,11 +23,13 @@ const Dashboard = () => {
     profit: 0,
     vegSales: 0,
     nonVegSales: 0,
-    totalDishes: 0
+    totalDishes: 0,
+    totalWorkersPayment: 0
   });
   const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
   const [vegNonVegChartData, setVegNonVegChartData] = useState<any[]>([]);
   const [monthlyChartData, setMonthlyChartData] = useState<any[]>([]);
+  const [dailyChartData, setDailyChartData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -64,6 +67,17 @@ const Dashboard = () => {
 
       // Calculate monthly data
       const monthlyMap = new Map();
+      // Build daily map for current month
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth();
+      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+      const dailyMap: Record<string, { day: string; income: number; expense: number; workers: number }> = {};
+      let lastDayWithData = 0;
+      for (let d = 1; d <= daysInMonth; d++) {
+        const key = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        dailyMap[key] = { day: String(d), income: 0, expense: 0, workers: 0 };
+      }
       transactions.forEach(t => {
         const date = new Date(t.transaction_date);
         const monthKey = date.toLocaleDateString('en-US', { month: 'short' });
@@ -78,15 +92,45 @@ const Dashboard = () => {
         } else {
           monthData.expense += Number(t.amount);
         }
+
+        // if in current month, add to daily
+        if (date.getFullYear() === currentYear && date.getMonth() === currentMonth) {
+          const dayKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+          if (!dailyMap[dayKey]) {
+            dailyMap[dayKey] = { day: String(date.getDate()), income: 0, expense: 0, workers: 0 };
+          }
+          if (t.type === 'income') {
+            dailyMap[dayKey].income += Number(t.amount);
+          } else {
+            dailyMap[dayKey].expense += Number(t.amount);
+          }
+          if (date.getDate() > lastDayWithData) lastDayWithData = date.getDate();
+        }
       });
 
-      // Fetch dish data
-      const { data: dishes } = await supabase
-        .from('dishes')
-        .select('type');
+      // Fetch dish data and workers data
+      const [dishesRes, workersRes] = await Promise.all([
+        supabase.from('dishes').select('type'),
+        supabase.from('workers').select('payment, created_at')
+      ]);
 
-      const vegCount = dishes?.filter(d => d.type === 'veg').length || 0;
-      const nonVegCount = dishes?.filter(d => d.type === 'non_veg').length || 0;
+      const dishes = dishesRes.data || [];
+      const vegCount = dishes.filter(d => d.type === 'veg').length || 0;
+      const nonVegCount = dishes.filter(d => d.type === 'non_veg').length || 0;
+      const workers = workersRes.data || [];
+      const totalWorkersPayment = workers.reduce((sum, w: any) => sum + Number(w.payment || 0), 0);
+      // add workers to daily map for current month
+      workers.forEach((w: any) => {
+        const d = new Date(w.created_at);
+        if (d.getFullYear() === currentYear && d.getMonth() === currentMonth) {
+          const dayKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+          if (!dailyMap[dayKey]) {
+            dailyMap[dayKey] = { day: String(d.getDate()), income: 0, expense: 0, workers: 0 };
+          }
+          dailyMap[dayKey].workers += Number(w.payment || 0);
+          if (d.getDate() > lastDayWithData) lastDayWithData = d.getDate();
+        }
+      });
 
       // Get recent transactions
       const recentTx = transactions
@@ -95,11 +139,12 @@ const Dashboard = () => {
 
       setStats({
         totalIncome: income,
-        totalExpenses: expenses,
-        profit: income - expenses,
+        totalExpenses: expenses + totalWorkersPayment,
+        profit: income - (expenses + totalWorkersPayment),
         vegSales: vegCount,
         nonVegSales: nonVegCount,
-        totalDishes: dishes?.length || 0
+        totalDishes: dishes.length || 0,
+        totalWorkersPayment
       });
 
       setVegNonVegChartData([
@@ -108,6 +153,10 @@ const Dashboard = () => {
       ]);
 
       setMonthlyChartData(Array.from(monthlyMap.values()));
+      const dailyValues = Object.values(dailyMap)
+        .sort((a, b) => Number(a.day) - Number(b.day))
+        .filter(entry => (lastDayWithData > 0 ? Number(entry.day) <= lastDayWithData : true));
+      setDailyChartData(dailyValues);
       setRecentTransactions(recentTx);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -143,7 +192,7 @@ const Dashboard = () => {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
         <KPICard
           title="Total Income"
           value={`₹${stats.totalIncome.toLocaleString()}`}
@@ -167,6 +216,13 @@ const Dashboard = () => {
           value={stats.totalDishes}
           icon="🍽️"
           gradient="bg-gradient-primary"
+        />
+        <KPICard
+          title="Workers Payment"
+          value={`₹${stats.totalWorkersPayment.toLocaleString()}`}
+          icon="🧾"
+          gradient="bg-gradient-non-veg"
+          className="xl:col-span-1"
         />
       </div>
 
@@ -202,7 +258,7 @@ const Dashboard = () => {
       </div>
 
       {/* Charts */}
-      <DashboardCharts vegNonVegData={vegNonVegChartData} monthlyData={monthlyChartData} />
+      <DashboardCharts vegNonVegData={vegNonVegChartData} monthlyData={monthlyChartData} dailyData={dailyChartData} />
 
       {/* Recent Transactions */}
       <Card className="hover-lift border-0">
