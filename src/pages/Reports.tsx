@@ -24,6 +24,7 @@ interface ReportData {
   topDishes: any[];
   categoryBreakdown: any[];
   dailyRevenue: any[];
+  workersMonthlyPayments: any[];
 }
 
 const Reports = () => {
@@ -32,7 +33,8 @@ const Reports = () => {
     vegNonVegSales: [],
     topDishes: [],
     categoryBreakdown: [],
-    dailyRevenue: []
+    dailyRevenue: [],
+    workersMonthlyPayments: []
   });
   const [loading, setLoading] = useState(true);
 
@@ -42,26 +44,25 @@ const Reports = () => {
 
   const fetchReportData = async () => {
     try {
-      // Fetch transactions with dish details
-      const { data: transactions } = await supabase
-        .from('transactions')
-        .select(`
+      // Fetch transactions, dishes, and workers data in parallel
+      const [transactionsRes, dishesRes, workersRes] = await Promise.all([
+        supabase.from('transactions').select(`
           *,
           dishes(name, type, categories(name))
-        `);
-
-      // Fetch dishes data
-      const { data: dishes } = await supabase
-        .from('dishes')
-        .select(`
+        `),
+        supabase.from('dishes').select(`
           *,
           categories(name, icon),
           transactions(*)
-        `);
+        `),
+        supabase.from('workers').select('payment, created_at')
+      ]);
 
-      if (transactions && dishes) {
-        processReportData(transactions, dishes);
-      }
+      const transactions = transactionsRes.data || [];
+      const dishes = dishesRes.data || [];
+      const workers = workersRes.data || [];
+
+      processReportData(transactions, dishes, workers);
     } catch (error) {
       console.error('Error fetching report data:', error);
     } finally {
@@ -69,7 +70,7 @@ const Reports = () => {
     }
   };
 
-  const processReportData = (transactions: any[], dishes: any[]) => {
+  const processReportData = (transactions: any[], dishes: any[], workers: any[]) => {
     // Monthly trends
     const monthlyData = processMonthlyTrends(transactions);
     
@@ -85,12 +86,16 @@ const Reports = () => {
     // Daily revenue (last 7 days)
     const dailyData = processDailyRevenue(transactions);
 
+    // Workers monthly payments
+    const workersPayments = processWorkersMonthlyPayments(workers);
+
     setReportData({
       monthlyTrends: monthlyData,
       vegNonVegSales: vegNonVegData,
       topDishes: topDishesData,
       categoryBreakdown: categoryData,
-      dailyRevenue: dailyData
+      dailyRevenue: dailyData,
+      workersMonthlyPayments: workersPayments
     });
   };
 
@@ -219,6 +224,20 @@ const Reports = () => {
     return last7Days;
   };
 
+  const processWorkersMonthlyPayments = (workers: any[]) => {
+    const monthlyMap = new Map();
+    workers.forEach((w) => {
+      const date = new Date(w.created_at);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      if (!monthlyMap.has(monthKey)) {
+        monthlyMap.set(monthKey, { month: monthKey, payment: 0 });
+      }
+      const entry = monthlyMap.get(monthKey);
+      entry.payment += Number(w.payment || 0);
+    });
+    return Array.from(monthlyMap.values()).sort((a, b) => a.month.localeCompare(b.month));
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -268,7 +287,7 @@ const Reports = () => {
       </Card>
 
       {/* Veg vs Non-Veg Sales & Daily Revenue */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         <Card className="hover-lift">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base md:text-lg">
@@ -309,7 +328,7 @@ const Reports = () => {
           </CardContent>
         </Card>
 
-        <Card className="hover-lift">
+        <Card className="hover-lift lg:col-span-1">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base md:text-lg">
               <span className="text-base md:text-lg">📅</span>
@@ -331,6 +350,27 @@ const Reports = () => {
                   dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 6 }}
                 />
               </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card className="hover-lift lg:col-span-1">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <span className="text-base md:text-lg">🧾</span>
+              Workers Monthly Payments
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-3 md:p-6">
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={reportData.workersMonthlyPayments}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip formatter={(value) => [`₹${Number(value).toLocaleString()}`, "Payments"]} />
+                <Legend />
+                <Bar dataKey="payment" fill="hsl(var(--expense))" name="Payments" radius={[8, 8, 0, 0]} />
+              </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
