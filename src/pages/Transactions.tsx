@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,8 @@ import { Plus, TrendingUp, TrendingDown, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { Calendar as DatePicker } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface Transaction {
   id: string;
@@ -40,6 +42,9 @@ const Transactions = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'income' | 'expense'>('all');
+  const [filterDescription, setFilterDescription] = useState<string>('all');
+  const [filterMonth, setFilterMonth] = useState<Date | undefined>();
+  const [filterDay, setFilterDay] = useState<Date | undefined>();
   const { toast } = useToast();
   const { isAdmin } = useAuth();
 
@@ -132,9 +137,25 @@ const Transactions = () => {
   };
 
   const filteredTransactions = transactions.filter(transaction => {
-    if (filter === 'all') return true;
-    return transaction.type === filter;
+    const matchesType = filter === 'all' ? true : transaction.type === filter;
+    const matchesDescription = filterDescription === 'all' ? true : transaction.description === filterDescription;
+    const txDate = new Date(transaction.transaction_date);
+    const matchesMonth = filterMonth
+      ? txDate.getFullYear() === filterMonth.getFullYear() && txDate.getMonth() === filterMonth.getMonth()
+      : true;
+    const matchesDay = filterDay
+      ? (txDate.getFullYear() === filterDay.getFullYear() && txDate.getMonth() === filterDay.getMonth() && txDate.getDate() === filterDay.getDate())
+      : true;
+    return matchesType && matchesDescription && (filterDay ? matchesDay : matchesMonth);
   });
+
+  const totalFilteredAmount = filteredTransactions.reduce((sum, t) => sum + (t.type === 'income' ? Number(t.amount) : -Number(t.amount)), 0);
+
+  const descriptionOptions = useMemo(() => {
+    const set = new Set<string>();
+    transactions.forEach(t => { if (t.description) set.add(t.description); });
+    return Array.from(set).sort();
+  }, [transactions]);
 
   const stats = calculateStats();
 
@@ -317,7 +338,8 @@ const Transactions = () => {
       {/* Filters */}
       <Card>
         <CardContent className="p-4">
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-2">
             <Button
               variant={filter === 'all' ? 'default' : 'outline'}
               onClick={() => setFilter('all')}
@@ -325,20 +347,85 @@ const Transactions = () => {
             >
               All Transactions
             </Button>
-            <Button
-              variant={filter === 'income' ? 'default' : 'outline'}
-              onClick={() => setFilter('income')}
-              size="sm"
-            >
-              💰 Income
-            </Button>
-            <Button
-              variant={filter === 'expense' ? 'default' : 'outline'}
-              onClick={() => setFilter('expense')}
-              size="sm"
-            >
-              💸 Expenses
-            </Button>
+              <Select value={filter} onValueChange={(v: any) => setFilter(v)}>
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder="Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="income">💰 Income</SelectItem>
+                  <SelectItem value="expense">💸 Expense</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={filterDescription} onValueChange={setFilterDescription}>
+                <SelectTrigger className="w-[220px]">
+                  <SelectValue placeholder="Description" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All descriptions</SelectItem>
+                  {descriptionOptions.map((d) => (
+                    <SelectItem key={d} value={d}>{d}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <div className="h-6 w-px bg-border mx-1" />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={cn("justify-start", !filterMonth && "text-muted-foreground")}
+                  >
+                    <Calendar className="mr-2 h-4 w-4" />
+                    {filterMonth ? filterMonth.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' }) : 'Filter by month'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <DatePicker
+                    mode="single"
+                    selected={filterMonth}
+                    onSelect={(date) => { setFilterMonth(date || undefined); setFilterDay(undefined); }}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={cn("justify-start", !filterDay && "text-muted-foreground")}
+                  >
+                    <Calendar className="mr-2 h-4 w-4" />
+                    {filterDay ? filterDay.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Filter by day'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <DatePicker
+                    mode="single"
+                    selected={filterDay}
+                    onSelect={(date) => setFilterDay(date || undefined)}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+              {(filter !== 'all' || filterMonth || filterDay || filterDescription !== 'all') && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => { setFilter('all'); setFilterMonth(undefined); setFilterDay(undefined); setFilterDescription('all'); }}
+                >
+                  Clear
+                </Button>
+              )}
+            </div>
+            <div className="text-sm md:text-base font-semibold whitespace-nowrap">
+              <span className={cn(totalFilteredAmount >= 0 ? 'text-income' : 'text-expense')}>
+                Total: {totalFilteredAmount >= 0 ? '+' : '-'}₹{Math.abs(totalFilteredAmount).toLocaleString()}
+              </span>
+            </div>
           </div>
         </CardContent>
       </Card>
