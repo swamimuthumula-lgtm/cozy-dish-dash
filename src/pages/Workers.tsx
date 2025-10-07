@@ -17,7 +17,6 @@ import { cn } from "@/lib/utils";
 interface Worker {
   id: string;
   name: string;
-  designation: string;
   payment: number;
   created_at: string;
   updated_at: string;
@@ -31,12 +30,12 @@ const Workers = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
-    designation: "",
     payment: "",
     payment_date: new Date(),
   });
   const [searchName, setSearchName] = useState("");
   const [filterMonth, setFilterMonth] = useState<Date | undefined>();
+  const [filterDay, setFilterDay] = useState<Date | undefined>();
 
   const { data: workers, isLoading } = useQuery({
     queryKey: ["workers"],
@@ -52,7 +51,7 @@ const Workers = () => {
   });
 
   const createMutation = useMutation({
-    mutationFn: async (newWorker: { name: string; designation: string; payment: number; created_at: string }) => {
+    mutationFn: async (newWorker: { name: string; payment: number; created_at: string; designation: string }) => {
       const { error } = await supabase.from("workers").insert([newWorker]);
       if (error) throw error;
     },
@@ -67,7 +66,7 @@ const Workers = () => {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: { name: string; designation: string; payment: number; created_at: string } }) => {
+    mutationFn: async ({ id, data }: { id: string; data: { name: string; payment: number; created_at: string } }) => {
       const { error } = await supabase.from("workers").update(data).eq("id", id);
       if (error) throw error;
     },
@@ -96,7 +95,7 @@ const Workers = () => {
   });
 
   const resetForm = () => {
-    setFormData({ name: "", designation: "", payment: "", payment_date: new Date() });
+    setFormData({ name: "", payment: "", payment_date: new Date() });
     setIsEditing(false);
     setEditingId(null);
   };
@@ -105,14 +104,13 @@ const Workers = () => {
     e.preventDefault();
     const payment = parseFloat(formData.payment);
     
-    if (!formData.name || !formData.designation || isNaN(payment)) {
+    if (!formData.name || isNaN(payment)) {
       toast({ title: "Please fill all fields correctly", variant: "destructive" });
       return;
     }
 
     const paymentData = {
       name: formData.name,
-      designation: formData.designation,
       payment,
       created_at: formData.payment_date.toISOString(),
     };
@@ -123,14 +121,16 @@ const Workers = () => {
         data: paymentData,
       });
     } else {
-      createMutation.mutate(paymentData);
+      createMutation.mutate({
+        ...paymentData,
+        designation: "", // or provide a default or form value if available
+      });
     }
   };
 
   const handleEdit = (worker: Worker) => {
     setFormData({
       name: worker.name,
-      designation: worker.designation,
       payment: worker.payment.toString(),
       payment_date: new Date(worker.created_at),
     });
@@ -155,10 +155,15 @@ const Workers = () => {
       const matchesMonth = filterMonth
         ? format(new Date(worker.created_at), "MM-yyyy") === format(filterMonth, "MM-yyyy")
         : true;
+
+      const matchesDay = filterDay
+        ? format(new Date(worker.created_at), "yyyy-MM-dd") === format(filterDay, "yyyy-MM-dd")
+        : true;
       
-      return matchesName && matchesMonth;
+      // If a specific day is selected, use day filter; otherwise use month filter
+      return matchesName && (filterDay ? matchesDay : matchesMonth);
     });
-  }, [workers, searchName, filterMonth]);
+  }, [workers, searchName, filterMonth, filterDay]);
 
   const totalPayment = useMemo(() => {
     return filteredWorkers.reduce((sum, worker) => sum + Number(worker.payment), 0);
@@ -178,7 +183,7 @@ const Workers = () => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
                   <Label htmlFor="name">Worker Name</Label>
                   <Input
@@ -186,15 +191,6 @@ const Workers = () => {
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     placeholder="Enter worker name"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="designation">Designation</Label>
-                  <Input
-                    id="designation"
-                    value={formData.designation}
-                    onChange={(e) => setFormData({ ...formData, designation: e.target.value })}
-                    placeholder="Enter designation"
                   />
                 </div>
                 <div>
@@ -275,39 +271,68 @@ const Workers = () => {
                 />
               </div>
             </div>
-            <div className="flex-1">
-              <Label>Filter by Month</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !filterMonth && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {filterMonth ? format(filterMonth, "MMMM yyyy") : <span>Select month</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={filterMonth}
-                    onSelect={setFilterMonth}
-                    initialFocus
-                    className="pointer-events-auto"
-                  />
-                </PopoverContent>
-              </Popover>
+            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label>Filter by Month</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !filterMonth && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {filterMonth ? format(filterMonth, "MMMM yyyy") : <span>Select month</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={filterMonth}
+                      onSelect={(date) => { setFilterMonth(date); setFilterDay(undefined); }}
+                      initialFocus
+                      className="pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div>
+                <Label>Filter by Day</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !filterDay && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {filterDay ? format(filterDay, "PPP") : <span>Select day</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={filterDay}
+                      onSelect={setFilterDay}
+                      initialFocus
+                      className="pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
-            {(searchName || filterMonth) && (
+            {(searchName || filterMonth || filterDay) && (
               <div className="flex items-end">
                 <Button
                   variant="outline"
                   onClick={() => {
                     setSearchName("");
                     setFilterMonth(undefined);
+                    setFilterDay(undefined);
                   }}
                 >
                   Clear Filters
@@ -323,7 +348,6 @@ const Workers = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Name</TableHead>
-                    <TableHead>Designation</TableHead>
                     <TableHead>Payment</TableHead>
                     <TableHead>Payment Date</TableHead>
                     {isAdmin && <TableHead className="text-right">Actions</TableHead>}
@@ -333,7 +357,6 @@ const Workers = () => {
                   {filteredWorkers.map((worker) => (
                     <TableRow key={worker.id}>
                       <TableCell className="font-medium">{worker.name}</TableCell>
-                      <TableCell>{worker.designation}</TableCell>
                       <TableCell>₹{worker.payment.toFixed(2)}</TableCell>
                       <TableCell>{format(new Date(worker.created_at), "PPP")}</TableCell>
                       {isAdmin && (
