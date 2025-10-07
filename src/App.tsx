@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import Menu from "./pages/Menu";
 import Transactions from "./pages/Transactions";
 import Reports from "./pages/Reports";
+import Workers from "./pages/Workers";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import { AuthProvider } from "./hooks/useAuth";
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/menu" element={<Layout><Menu /></Layout>} />
             <Route path="/transactions" element={<Layout><Transactions /></Layout>} />
             <Route path="/reports" element={<Layout><Reports /></Layout>} />
+            <Route path="/workers" element={<Layout><Workers /></Layout>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<Layout><NotFound /></Layout>} />
           </Routes>

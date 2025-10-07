@@ -4,7 +4,8 @@ import {
   Home, 
   UtensilsCrossed, 
   TrendingUp, 
-  FileBarChart, 
+  FileBarChart,
+  Users, 
   Menu as MenuIcon,
   X,
   LogOut,
@@ -24,6 +25,7 @@ const Navigation = () => {
     { href: "/menu", label: "Menu", icon: UtensilsCrossed, emoji: "🍽️" },
     { href: "/transactions", label: "Transactions", icon: TrendingUp, emoji: "💸" },
     { href: "/reports", label: "Reports", icon: FileBarChart, emoji: "📊" },
+    { href: "/workers", label: "Workers", icon: Users, emoji: "👥" },
   ];
 
   const isActive = (href: string) => location.pathname === href;
